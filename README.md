@@ -1,5 +1,5 @@
-# horcrux
 ![header](https://user-images.githubusercontent.com/3139649/31358032-a42ab7fc-ad09-11e7-973d-d0b5b0981763.png)
+
 'The Dropbox for IPFS'
 
 ##### Why do I need **horcrux**?
