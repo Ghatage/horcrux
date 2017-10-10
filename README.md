@@ -27,6 +27,7 @@ Visual representation
 horcrux is written in such a way that all the dependencies it uses can be swapped out easily. However the prototype was made with the help of these fine repos:
 
 - python3
+- ipfsapi (https://ipfs.io/docs/getting-started/)
 - simple-crypt (https://github.com/andrewcooke/simple-crypt/)
 - pyrabin (https://github.com/aitjcize/pyrabin)
 - DragAndDrop UI (https://github.com/pcote/DragDropProject)

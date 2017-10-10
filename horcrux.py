@@ -1,7 +1,8 @@
 from encryption import EncryptLayer
 from rabin import split_file_by_fingerprints
 from simplecrypt import encrypt, decrypt
-import os, shutil
+from configparser import SafeConfigParser
+import os, shutil, pickle, ipfsapi
 
 def main(filename):
 	read_and_encrypt(filename)
@@ -41,8 +42,19 @@ def read_and_encrypt(filename):
 	# Move block files and encrypted files to hidden folder
 	move_all_block_files(filelist, filename, hiddendirectory)
 
-	# ipfs add the encrypted file
+	# Upload to IPFS, return dict of enc file <-> hash, save that in a new enc.lst
+	enc_to_hash_list = upload_encrypted_chunks(hiddendirectory, encrypted_file_list)
+	# print (enc_to_hash_list)
 
+	# Pickle the enc_to_hash_list
+	write_list_file(hiddendirectory, filename + '.enc2hash', enc_to_hash_list)
+
+	# Unpickle and read the enc2hash list
+	print(read_list_file(hiddendirectory, filename + '.enc2hash'))
+
+	# Remove blk and enc files
+	remove_files_from_dir(hiddendirectory,'.blk')
+	remove_files_from_dir(hiddendirectory,'.enc')
 
 def write_encrypted(password, filename, plaintext):
     with open(filename, 'wb') as output:
@@ -66,9 +78,12 @@ def move_all_block_files(filelist, filename, hiddendirectory):
 		shutil.move(os.path.split(filename)[0] + '/' + blockfile + '.enc', hiddendirectory)
 
 def write_list_file(hiddendirectory, filename, result):
-	listfile = open(hiddendirectory + '/' + os.path.basename(filename) + '.lst', "w")
-	listfile.write(str(result))
-	listfile.close()
+	with open(hiddendirectory + '/' + os.path.basename(filename) + '.lst', 'wb') as listfile:
+		pickle.dump(result, listfile, protocol=pickle.HIGHEST_PROTOCOL)
+
+def read_list_file(hiddendirectory, filename):
+	with open(hiddendirectory + '/' + os.path.basename(filename) + '.lst', 'rb') as listfile:
+		return pickle.load(listfile)
 
 def create_hidden_dir(filename):
 	directory = "." + os.path.basename(filename)
@@ -76,6 +91,21 @@ def create_hidden_dir(filename):
 		os.makedirs(directory)
 	return directory
 
+def upload_encrypted_chunks(hiddendirectory, encrypted_file_list):
+	# ipfs add the encrypted file:: Make this configurable
+	hash_list = []
+	api = ipfsapi.connect('127.0.0.1', 5001)
+	for file in encrypted_file_list:
+		filename = hiddendirectory + '/' + file
+		res = api.add(filename)
+		print ("File: " + filename + "Hash: " + res['Hash'])
+		hash_list.append((file , res['Hash']))
+	return hash_list
+
+def remove_files_from_dir(hiddendirectory, pattern):
+	filelist = [ f for f in os.listdir(hiddendirectory) if f.endswith(pattern) ]
+	for f in filelist:
+		os.remove(os.path.join(hiddendirectory, f))
 
 def read_and_decrypt(filename):
 	print ("In Read and Decrypt: " + filename)
