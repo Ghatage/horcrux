@@ -1,11 +1,11 @@
 from encryption import EncryptLayer
+from filehandler import FileHandlingLayer
+from network import NetworkLayer
 from rabin import split_file_by_fingerprints
-from simplecrypt import encrypt, decrypt
-from configparser import SafeConfigParser
-import os, shutil, pickle, ipfsapi
+import os, ipfsapi
 
 def main(filename):
-	read_and_encrypt(filename)
+#	read_and_encrypt(filename)
 	read_and_decrypt(filename)	
 
 
@@ -19,7 +19,8 @@ def read_and_encrypt(filename):
 	# -> Actual encrypted block files held temporarily
 
 	# Ensure this gets the absolute path
-	directory = create_hidden_dir(filename)
+	directory = FileHandlingLayer.create_hidden_dir(filename)
+	hiddendirectory = os.path.split(filename)[0] + '/' + directory
 
 	# Read encryption password from config file
 	filepassword = 'LOL'
@@ -32,83 +33,47 @@ def read_and_encrypt(filename):
 		filelist.add(file[3])
 
 	# Write filename :: block file list to .filename.lst
-	hiddendirectory = os.path.split(filename)[0] + '/' + directory
-	write_list_file(hiddendirectory, filename, result)
+	FileHandlingLayer.write_list_file(hiddendirectory, filename, result)
 
 	# Loop through unique list of block files, encrypt each one at a time into a file
-	# fetch the password from the config file
-	encrypted_file_list = encrypt_all_block_files(filelist,filepassword)
+	encrypted_file_list = EncryptLayer.encrypt_all_block_files(filelist,filepassword)
 
 	# Move block files and encrypted files to hidden folder
-	move_all_block_files(filelist, filename, hiddendirectory)
+	FileHandlingLayer.move_all_block_files(filelist, filename, hiddendirectory)
 
 	# Upload to IPFS, return dict of enc file <-> hash, save that in a new enc.lst
-	enc_to_hash_list = upload_encrypted_chunks(hiddendirectory, encrypted_file_list)
-	# print (enc_to_hash_list)
+	enc_to_hash_list = NetworkLayer.upload_encrypted_chunks(hiddendirectory, encrypted_file_list)
 
-	# Pickle the enc_to_hash_list
-	write_list_file(hiddendirectory, filename + '.enc2hash', enc_to_hash_list)
+	# Pickle the enc_to_hash_list FIX HACK OF APPENDING EXTN
+	FileHandlingLayer.write_list_file(hiddendirectory, filename + '.enc2hash', enc_to_hash_list)
 
 	# Unpickle and read the enc2hash list
-	print(read_list_file(hiddendirectory, filename + '.enc2hash'))
+	print(FileHandlingLayer.read_list_file(hiddendirectory, filename + '.enc2hash'))
 
 	# Remove blk and enc files
-	remove_files_from_dir(hiddendirectory,'.blk')
-	remove_files_from_dir(hiddendirectory,'.enc')
-
-def write_encrypted(password, filename, plaintext):
-    with open(filename, 'wb') as output:
-        ciphertext = EncryptLayer.encryptWrapper(password, plaintext)
-        output.write(ciphertext)
-
-def encrypt_all_block_files(filelist, filepassword):
-	returnlist = []
-	for file in filelist:
-		newfile = file + '.enc'
-		returnlist.append(newfile)
-		newfilefd = open(file,"r");
-		write_encrypted(filepassword, newfile, newfilefd.read())
-		print (newfile + " written")
-	return returnlist
-
-def move_all_block_files(filelist, filename, hiddendirectory):
-	for blockfile in filelist:
-		shutil.move(os.path.split(filename)[0] + '/' + blockfile, hiddendirectory)
-	for blockfile in filelist:
-		shutil.move(os.path.split(filename)[0] + '/' + blockfile + '.enc', hiddendirectory)
-
-def write_list_file(hiddendirectory, filename, result):
-	with open(hiddendirectory + '/' + os.path.basename(filename) + '.lst', 'wb') as listfile:
-		pickle.dump(result, listfile, protocol=pickle.HIGHEST_PROTOCOL)
-
-def read_list_file(hiddendirectory, filename):
-	with open(hiddendirectory + '/' + os.path.basename(filename) + '.lst', 'rb') as listfile:
-		return pickle.load(listfile)
-
-def create_hidden_dir(filename):
-	directory = "." + os.path.basename(filename)
-	if not os.path.exists(directory):
-		os.makedirs(directory)
-	return directory
-
-def upload_encrypted_chunks(hiddendirectory, encrypted_file_list):
-	# ipfs add the encrypted file:: Make this configurable
-	hash_list = []
-	api = ipfsapi.connect('127.0.0.1', 5001)
-	for file in encrypted_file_list:
-		filename = hiddendirectory + '/' + file
-		res = api.add(filename)
-		print ("File: " + filename + "Hash: " + res['Hash'])
-		hash_list.append((file , res['Hash']))
-	return hash_list
-
-def remove_files_from_dir(hiddendirectory, pattern):
-	filelist = [ f for f in os.listdir(hiddendirectory) if f.endswith(pattern) ]
-	for f in filelist:
-		os.remove(os.path.join(hiddendirectory, f))
+	FileHandlingLayer.remove_files_from_dir(hiddendirectory,'.blk')
+	FileHandlingLayer.remove_files_from_dir(hiddendirectory,'.enc')
 
 def read_and_decrypt(filename):
-	print ("In Read and Decrypt: " + filename)
+	# Open the enc file and unpickle the contents, loop thru and print enc and hashes
+	# -> Add download from IPFS functionality to the hashes and write those as .blk.enc files
+	# -> Loop thru the encrypted files and decrypt them and add them to a string
+	# -> re-write the new string to a file and call it target
+
+	# Look for hidden directory with the file name and check if lst and enc.lst files exist.
+	hiddendirectory = os.path.split(filename)[0] + '/' + '.' + os.path.split(filename)[1] + '/'
+	listfile = hiddendirectory + os.path.split(filename)[1] + '.lst'
+	enc2hashfile = hiddendirectory + os.path.split(filename)[1] + '.enc2hash.lst'
+
+	if FileHandlingLayer.check_if_lst_enc_files_exist(hiddendirectory, listfile, enc2hashfile) == True:
+		print ("Given file has list file and enc list file")
+		listfile_contents = FileHandlingLayer.read_list_file(hiddendirectory, os.path.split(filename)[1])
+		enc2hashfile_contents = FileHandlingLayer.read_list_file(hiddendirectory, os.path.split(filename)[1] + '.enc2hash')
+		NetworkLayer.download_encrypted_chunks(enc2hashfile_contents)
+		EncryptLayer.decrypt_chunks(enc2hashfile_contents, 'LOL')
+	else:
+		return
+
 #	plaintext = EncryptLayer.decryptWrapper("One",cipher)
 #	print("Decrypted: " + plaintext.decode('utf8'))
 
