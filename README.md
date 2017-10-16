@@ -1,6 +1,6 @@
 ![header](https://user-images.githubusercontent.com/3139649/31358032-a42ab7fc-ad09-11e7-973d-d0b5b0981763.png)
 
-'The Dropbox for IPFS'
+'The Dropbox for IPFS' //  'Hide in plain sight'
 
 ##### Why do I need **horcrux**?
 horcrux is a client which can hopefully resolve some of the drawbacks IPFS has.
