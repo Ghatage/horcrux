@@ -26,11 +26,11 @@ Visual representation
 
 ##### This project is currently under development!
 TODO:
-- Finish reconstructing file from downloaded and decrypted block files
-- Clean up downloaded blk and enc files
 - Find a more elegant way to generate and download blk and enc files without changing pyrabin
+- Refactor code to be more elegant, refactor variable names to be consistent
 - Introduce a config file which can have the encryption password and other details
 - Reintroduce UI and hook it up with the horcrux via Flask
+- Come up with unit tests
 
 
 ##### Dependencies and credits

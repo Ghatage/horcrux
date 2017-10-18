@@ -65,9 +65,9 @@ def read_and_decrypt(filename):
 	if FileHandlingLayer.check_if_lst_enc_files_exist(hiddendirectory, listfile, enc2hashfile) == True:
 		listfile_contents = FileHandlingLayer.read_list_file(hiddendirectory, os.path.split(filename)[1])
 		enc2hashfile_contents = FileHandlingLayer.read_list_file(hiddendirectory, os.path.split(filename)[1] + '.enc2hash')
-		NetworkLayer.download_encrypted_chunks(enc2hashfile_contents)
+		NetworkLayer.download_encrypted_chunks(hiddendirectory, enc2hashfile_contents)
 		EncryptLayer.decrypt_chunks(enc2hashfile_contents, 'LOL')
-		FileHandlingLayer.reconstruct_file(listfile_contents,'comparefile.txt')
+		FileHandlingLayer.reconstruct_file(listfile_contents,'test1.txt')
 		FileHandlingLayer.remove_files_from_dir('./','.blk')
 		FileHandlingLayer.remove_files_from_dir('./','.enc')
 	else:
