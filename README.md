@@ -23,6 +23,16 @@ In this way:
 Visual representation
 ![working](https://user-images.githubusercontent.com/3139649/31358031-a428b81c-ad09-11e7-8f4c-4cd973b02391.png)
 
+
+##### This project is currently under development!
+TODO:
+- Finish reconstructing file from downloaded and decrypted block files
+- Clean up downloaded blk and enc files
+- Find a more elegant way to generate and download blk and enc files without changing pyrabin
+- Introduce a config file which can have the encryption password and other details
+- Reintroduce UI and hook it up with the horcrux via Flask
+
+
 ##### Dependencies and credits
 horcrux is written in such a way that all the dependencies it uses can be swapped out easily. However the prototype was made with the help of these fine repos:
 
