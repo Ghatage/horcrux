@@ -38,3 +38,11 @@ class FileHandlingLayer(object):
 			print ("No such file, returning")
 			return False
 
+	def reconstruct_file(listfile_contents, filename):
+		mainfile = open(filename,'w')
+		for item in listfile_contents:
+			print('Writing file: ' + item[3])
+			file = open(item[3],'r')
+			mainfile.write(file.read())
+			file.close()
+		mainfile.close()

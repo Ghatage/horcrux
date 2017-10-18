@@ -47,9 +47,6 @@ def read_and_encrypt(filename):
 	# Pickle the enc_to_hash_list FIX HACK OF APPENDING EXTN
 	FileHandlingLayer.write_list_file(hiddendirectory, filename + '.enc2hash', enc_to_hash_list)
 
-	# Unpickle and read the enc2hash list
-	print(FileHandlingLayer.read_list_file(hiddendirectory, filename + '.enc2hash'))
-
 	# Remove blk and enc files
 	FileHandlingLayer.remove_files_from_dir(hiddendirectory,'.blk')
 	FileHandlingLayer.remove_files_from_dir(hiddendirectory,'.enc')
@@ -66,16 +63,16 @@ def read_and_decrypt(filename):
 	enc2hashfile = hiddendirectory + os.path.split(filename)[1] + '.enc2hash.lst'
 
 	if FileHandlingLayer.check_if_lst_enc_files_exist(hiddendirectory, listfile, enc2hashfile) == True:
-		print ("Given file has list file and enc list file")
 		listfile_contents = FileHandlingLayer.read_list_file(hiddendirectory, os.path.split(filename)[1])
 		enc2hashfile_contents = FileHandlingLayer.read_list_file(hiddendirectory, os.path.split(filename)[1] + '.enc2hash')
 		NetworkLayer.download_encrypted_chunks(enc2hashfile_contents)
 		EncryptLayer.decrypt_chunks(enc2hashfile_contents, 'LOL')
+		FileHandlingLayer.reconstruct_file(listfile_contents,'comparefile.txt')
+		FileHandlingLayer.remove_files_from_dir('./','.blk')
+		FileHandlingLayer.remove_files_from_dir('./','.enc')
 	else:
 		return
 
-#	plaintext = EncryptLayer.decryptWrapper("One",cipher)
-#	print("Decrypted: " + plaintext.decode('utf8'))
 
 if __name__ == "__main__":
 	main("/Users/aghatage/Documents/PersonalDocs/horcrux/test.txt")
