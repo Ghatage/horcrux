@@ -1,37 +1,43 @@
 from simplecrypt import encrypt, decrypt
-import os
+import os, pickle
 
 class EncryptLayer(object):
 
-	def encryptWrapper(password, message ):
+	def encryptWrapper(password, message):
 		return encrypt(password, message)
 
 	def decryptWrapper(password, cipher):
 		return decrypt(password, cipher)
 
 	def encrypt_all_block_files(filelist, filepassword):
+		print(filelist)
 		returnlist = []
 		for file in filelist:
-			newfile = file + '.enc'
-			returnlist.append(newfile)
-			newfilefd = open(file,"r");
-			write_encrypted(filepassword, newfile, newfilefd.read())
-			print (newfile + " written")
+			blkfilefd = open(file,"r")
+			plaintext = blkfilefd.read()
+			print(type(plaintext.encode('utf8')))
+			print(plaintext)
+			enc_blk_file_name = file + '.enc'
+			enc_fd = open(enc_blk_file_name, 'wb')
+			ciphertext = encrypt(filepassword, plaintext.encode('utf8'))
+			pickle.dump(ciphertext,enc_fd,protocol=pickle.HIGHEST_PROTOCOL)
+			print (enc_blk_file_name + " written")
+
+			returnlist.append(enc_blk_file_name)
 		return returnlist
 
-	def write_encrypted(password, filename, plaintext):
-	    with open(filename, 'wb') as output:
-	        ciphertext = encryptWrapper(password, plaintext)
-	        output.write(ciphertext)
-
 	def decrypt_chunks(encfile_list,password):
+		print(str(encfile_list))
 		for blkfile in encfile_list:
-			read_from = open(blkfile[0],'rb')
-			read_contents = read_from.read()
-			print (read_contents)
+			read_from_enc_file = open(blkfile[0],'rb')
+			print("Opened " + blkfile[0] + " for reading in binary")
 			filename = os.path.splitext(blkfile[0])[0]
-			print('Decrypting file ' + str(filename))
+
+			read_contents = pickle.load(read_from_enc_file)
+			print('Decrypting file ' + str(blkfile[0]))
+			data_to_write = decrypt(password, read_contents)
+
 			blockfile = open(filename,'wb')
-		#	blockfile.write(decrypt(password, read_contents))
+			blockfile.write(data_to_write)
 			blockfile.close()
-			read_from.close()
+			read_from_enc_file.close()

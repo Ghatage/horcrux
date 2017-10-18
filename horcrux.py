@@ -4,9 +4,9 @@ from network import NetworkLayer
 from rabin import split_file_by_fingerprints
 import os, ipfsapi
 
-#def main(filename):
-#	read_and_encrypt(filename)
-#	read_and_decrypt(filename)	
+def main(filename):
+	read_and_encrypt(filename)
+	read_and_decrypt(filename)	
 
 
 # Will be called by upload function
@@ -77,6 +77,6 @@ def read_and_decrypt(filename):
 #	plaintext = EncryptLayer.decryptWrapper("One",cipher)
 #	print("Decrypted: " + plaintext.decode('utf8'))
 
-#if __name__ == "__main__":
-#	main("/Users/aghatage/Documents/PersonalDocs/horcrux/test.txt")
+if __name__ == "__main__":
+	main("/Users/aghatage/Documents/PersonalDocs/horcrux/test.txt")
 
